@@ -13,23 +13,22 @@ use Zend\ServiceManager\ServiceManager as ZendServiceManager;
 
 class ServiceManager
 {
-	private static $instances = [];
+	private static $instance = null;
 	private $serviceManager;
 
 	/**
 	 * Fetch (and create if needed) an instance of this class.
 	 *
-	 * @param string $configPath
+	 * @param array $config
 	 * @return ServiceManager
 	 */
-	public static function getInstance($configPath = __DIR__ . '/config/application.config.php')
+	public static function getInstance(array $config)
 	{
-		$config = require $configPath;
-		if (!array_key_exists($config, self::$instances)) {
-			self::$instances[$config] = new self($config);
+		if (is_null(self::$instance)) {
+			self::$instance = new self($config);
 		}
 
-		return self::$instances[$config];
+		return self::$instance;
 	}
 
 	/**
