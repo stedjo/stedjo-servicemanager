@@ -8,10 +8,14 @@
 
 namespace SD;
 
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Zend\Mvc\Service\ServiceManagerConfig;
+use Zend\ServiceManager\Exception;
+use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\ServiceManager as ZendServiceManager;
 
-class ServiceManager
+class ServiceManager implements ServiceLocatorInterface
 {
 	private static $instance = null;
 	private $serviceManager;
@@ -52,13 +56,50 @@ class ServiceManager
 	}
 
 	/**
-	 * Magic call method which propagates calls to original service manager instance
-	 * @param $name
-	 * @param $arguments
-	 * @return mixed
+	 * Finds an entry of the container by its identifier and returns it.
+	 *
+	 * @param string $id Identifier of the entry to look for.
+	 *
+	 * @throws NotFoundExceptionInterface  No entry was found for **this** identifier.
+	 * @throws ContainerExceptionInterface Error while retrieving the entry.
+	 *
+	 * @return mixed Entry.
 	 */
-	public function __call($name, $arguments)
+	public function get($id)
 	{
-		return $responseObject = call_user_func_array([$this->serviceManager, $name], $arguments);
+		return $this->serviceManager->get($id);
+	}
+
+	/**
+	 * Returns true if the container can return an entry for the given identifier.
+	 * Returns false otherwise.
+	 *
+	 * `has($id)` returning true does not mean that `get($id)` will not throw an exception.
+	 * It does however mean that `get($id)` will not throw a `NotFoundExceptionInterface`.
+	 *
+	 * @param string $id Identifier of the entry to look for.
+	 *
+	 * @return bool
+	 */
+	public function has($id)
+	{
+		return $this->serviceManager->has($id);
+	}
+
+	/**
+	 * Build a service by its name, using optional options (such services are NEVER cached).
+	 *
+	 * @param  string $name
+	 * @param  null|array $options
+	 * @return mixed
+	 * @throws Exception\ServiceNotFoundException If no factory/abstract
+	 *     factory could be found to create the instance.
+	 * @throws Exception\ServiceNotCreatedException If factory/delegator fails
+	 *     to create the instance.
+	 * @throws ContainerExceptionInterface if any other error occurs
+	 */
+	public function build($name, array $options = null)
+	{
+		return $this->serviceManager->build($name, $options);
 	}
 }
